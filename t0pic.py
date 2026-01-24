@@ -3,6 +3,7 @@
 
 import random
 import string
+import requests
 
 from flask import abort, Flask, request, redirect
 from pathlib import Path
@@ -15,6 +16,17 @@ PORT = 5003
 URL = 'https://pic.t0.vc'
 POST_PARAM = 'pic'
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16 MB
+
+def controller_message(message):
+    print('Sending controller message: ' + message)
+    payload = dict(pic=message)
+    r = requests.post('https://tbot.tanner.vc/message', data=payload, timeout=5)
+    if r.status_code == 200:
+        return True
+    else:
+        print('Unable to communicate with controller!')
+        return False
+
 
 def help():
     form = (
@@ -58,7 +70,6 @@ EXAMPLES
 SOURCE CODE
     https://txt.t0.vc/CQQE
     nginx config: https://txt.t0.vc/ZKEH
-    https://github.com/tanner37/t0pic
 
 SEE ALSO
     https://txt.t0.vc
@@ -133,6 +144,11 @@ def new():
         print(f'Adding pic {nid}{ext}')
 
         url = f'{URL}/{nid}{ext}'
+
+        if pic.size != (300, 150):
+            msg = 'New t0pic:\n\n' + url
+            controller_message(msg)
+
         if 'web' in request.form:
             return redirect(url)
         else:
